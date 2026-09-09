@@ -1,0 +1,568 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0c1626">
+<title>Quando a espera começa a ocupar espaço demais</title>
+<!-- Tipografia do projeto: Lora (títulos, destaques e frases de impacto) + DM Sans (textos corridos, funcionais e botões). -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  /* ============================================================
+     TOKENS — variação "azul profundo / areia" (espera).
+     Ajuste apenas este bloco para mudar cores em toda a página.
+     ============================================================ */
+  :root {
+    --bg-1: #0b1522;
+    --bg-2: #101f30;
+    --bg-3: #16283a;
+    --ink: #eef2f8;
+    --muted: #a6b6c9;
+    --primary: #8fc0f2;
+    --primary-strong: #b9dcfa;
+    --primary-deep: #33587f;
+    --soft: rgba(143, 192, 242, .14);
+    --glow-a: rgba(143, 192, 242, .28);
+    --glow-b: rgba(210, 182, 128, .18);
+    --glass: rgba(255, 255, 255, .055);
+    --glass-strong: rgba(255, 255, 255, .09);
+    --border: rgba(255, 255, 255, .12);
+    --shadow: 0 30px 70px rgba(0, 0, 0, .35);
+    --safe-b: env(safe-area-inset-bottom, 0px);
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    min-width: 320px;
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    color: var(--ink);
+    background:
+      radial-gradient(60vw 60vw at 88% -8%, var(--glow-a), transparent 60%),
+      radial-gradient(65vw 65vw at -10% 45%, var(--glow-b), transparent 55%),
+      linear-gradient(170deg, var(--bg-1) 0%, var(--bg-2) 50%, var(--bg-3) 100%);
+    font-family: 'DM Sans', ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
+  }
+
+  .display { font-family: 'Lora', Georgia, 'Times New Roman', serif; font-weight: 600; letter-spacing: -.005em; }
+
+  h1, h2, h3 { margin: 0; color: var(--ink); font-family: 'Lora', Georgia, 'Times New Roman', serif; font-weight: 600; }
+  a { color: inherit; }
+
+  main { max-width: 720px; margin: 0 auto; padding: 22px 20px 96px; }
+
+  .top-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 26px; }
+  .brand {
+    display: inline-flex; align-items: center; gap: 9px; padding: 9px 13px;
+    color: var(--primary-strong); background: var(--glass-strong);
+    border: 1px solid var(--border); border-radius: 999px;
+    font-size: .88rem; font-weight: 600;
+  }
+  .brand-mark { width: 9px; height: 9px; border-radius: 50%; background: var(--primary); box-shadow: 0 0 0 4px var(--soft); }
+  .specialist-chip {
+    display: inline-flex; align-items: center; gap: 7px; padding: 7px 12px;
+    color: var(--muted); background: var(--glass); border: 1px solid var(--border);
+    border-radius: 999px; font-size: .76rem; font-weight: 600;
+  }
+
+  .eyebrow {
+    display: inline-block; margin: 0 0 16px; padding: 6px 13px;
+    color: var(--primary-strong); background: var(--soft);
+    border: 1px solid rgba(143,192,242,.25);
+    border-radius: 999px; font-size: .76rem; font-weight: 600;
+    letter-spacing: .08em; text-transform: uppercase;
+  }
+
+  /* ===================== HERO (reorganizado) ===================== */
+  .hero { position: relative; padding: 8px 0 6px; overflow: hidden; }
+  .hero-art {
+    position: absolute; inset: -6% -10% auto -10%; z-index: 0;
+    width: 120%; aspect-ratio: 1 / .78;
+    opacity: .6; pointer-events: none;
+  }
+  .hero-art svg { width: 100%; height: 100%; display: block; }
+  .hero-content { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; text-align: center; }
+
+  .hero h1 { font-size: clamp(1.95rem, 8.4vw, 2.7rem); line-height: 1.18; max-width: 17ch; }
+  .hero .subtitle { margin: 24px 0 0; max-width: 42ch; color: var(--muted); font-size: 1.05rem; line-height: 1.68; }
+
+  .vsl-slot {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+    width: 100%; max-width: 480px; aspect-ratio: 16 / 9;
+    margin: 26px 0 0; padding: 16px;
+    background: var(--glass); border: 1px dashed var(--border); border-radius: 20px;
+    color: var(--muted); font-size: .88rem; text-align: center;
+  }
+  .vsl-slot svg { flex: 0 0 auto; opacity: .85; }
+
+  .cta-button {
+    position: relative;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; max-width: 480px; min-height: 58px; margin-top: 28px; padding: 14px 22px;
+    color: #0c1626; background: linear-gradient(120deg, var(--primary-strong), var(--primary));
+    border: none; border-radius: 16px;
+    box-shadow: 0 16px 34px rgba(143, 192, 242, .28);
+    font: inherit; font-family: 'DM Sans', ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 1.02rem; font-weight: 600; text-transform: uppercase; letter-spacing: .02em;
+    text-decoration: none; cursor: pointer;
+    transition: transform .18s ease, box-shadow .18s ease;
+    -webkit-tap-highlight-color: transparent;
+    animation: glowPulse 4.5s ease-in-out infinite;
+  }
+  .cta-button:hover, .cta-button:focus-visible { box-shadow: 0 20px 40px rgba(143, 192, 242, .4); }
+  .cta-button:active { transform: scale(.982); }
+  .cta-note { margin: 14px 0 0; color: var(--muted); font-size: .88rem; text-align: center; }
+  @keyframes glowPulse { 0%, 100% { box-shadow: 0 16px 34px rgba(143, 192, 242, .28); } 50% { box-shadow: 0 16px 44px rgba(143, 192, 242, .48); } }
+
+  /* ---------- três itens visuais (dor / impacto / autocuidado) ---------- */
+  .mini-features { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 480px; margin-top: 28px; text-align: left; }
+  .mini-feature {
+    display: flex; align-items: flex-start; gap: 14px;
+    padding: 15px 16px; background: var(--glass); border: 1px solid var(--border); border-radius: 16px;
+  }
+  .mini-icon {
+    flex: 0 0 auto; display: grid; place-items: center;
+    width: 42px; height: 42px; border-radius: 13px;
+    background: var(--soft); color: var(--primary-strong);
+  }
+  .mini-icon.alt { background: rgba(210, 182, 128, .22); color: #d6bd8b; }
+  .mini-text h3 { font-size: .98rem; margin-bottom: 3px; line-height: 1.35; }
+  .mini-text p { margin: 0; color: var(--muted); font-size: .89rem; line-height: 1.5; }
+  @media (max-width: 359px) {
+    .mini-feature { flex-direction: column; }
+  }
+
+  /* ---------- oferta: preço ---------- */
+  .price-original { color: var(--muted); font-size: .98rem; text-decoration: line-through; text-decoration-color: rgba(255,255,255,.35); }
+  .price-label { display: block; margin-top: 4px; color: var(--muted); font-size: .82rem; letter-spacing: .04em; text-transform: uppercase; }
+  .price-current { display: block; margin-top: 2px; color: var(--primary-strong); font-size: 2rem; font-weight: 800; letter-spacing: -.02em; }
+
+  section.block { margin-top: 60px; }
+  .block h2 { font-size: clamp(1.4rem, 5.5vw, 1.75rem); line-height: 1.28; margin-bottom: 14px; }
+  .block p { color: var(--muted); font-size: 1rem; line-height: 1.72; margin: 0 0 14px; }
+  .block p:last-child { margin-bottom: 0; }
+  .lead { color: var(--ink); font-size: 1.08rem; line-height: 1.65; }
+
+  .pain-grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 22px; }
+  .pain-card {
+    text-align: left; color: var(--ink);
+    padding: 18px; background: var(--glass);
+    border: 1px solid var(--border); border-radius: 18px;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    font: inherit; cursor: pointer;
+    transition: transform .2s ease, border-color .2s ease, background .2s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .pain-card:hover, .pain-card:focus-visible { transform: translateY(-2px); border-color: rgba(143,192,242,.4); outline: none; }
+  .pain-card.active { background: var(--glass-strong); border-color: rgba(143,192,242,.5); }
+  .pain-quote { display: flex; gap: 10px; align-items: flex-start; font-family: 'Lora', Georgia, 'Times New Roman', serif; font-weight: 600; font-size: 1rem; line-height: 1.45; }
+  .pain-quote svg { flex: 0 0 auto; margin-top: 2px; opacity: .8; }
+  .pain-detail {
+    display: grid; grid-template-rows: 0fr; margin: 0 0 0 26px;
+    color: var(--muted); font-size: .91rem; line-height: 1.55;
+    transition: grid-template-rows .28s ease;
+  }
+  .pain-card.active .pain-detail { grid-template-rows: 1fr; margin-top: 8px; }
+  .pain-detail span { overflow: hidden; display: block; }
+
+  .method-grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 22px; }
+  .method-card {
+    display: flex; gap: 14px; padding: 18px;
+    background: var(--glass); border: 1px solid var(--border); border-radius: 18px;
+  }
+  .method-num {
+    flex: 0 0 auto; display: grid; place-items: center;
+    width: 38px; height: 38px; border-radius: 12px;
+    background: linear-gradient(140deg, var(--primary), var(--primary-deep));
+    color: #0c1626; font-weight: 800; font-size: .95rem;
+  }
+  .method-card h3 { font-size: 1.02rem; margin-bottom: 5px; line-height: 1.35; }
+  .method-card p { margin: 0; color: var(--muted); font-size: .94rem; line-height: 1.55; }
+
+  .checklist { list-style: none; margin: 22px 0 0; padding: 0; display: grid; gap: 12px; }
+  .checklist li {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 15px 16px; background: var(--glass); border: 1px solid var(--border);
+    border-radius: 14px; color: var(--ink); font-size: .98rem; line-height: 1.55;
+  }
+  .checklist li svg { flex: 0 0 auto; margin-top: 2px; }
+
+  .journey { position: relative; margin-top: 26px; padding-left: 34px; }
+  .journey::before { content: ""; position: absolute; top: 6px; bottom: 6px; left: 11px; width: 2px; background: linear-gradient(var(--primary), transparent); opacity: .4; }
+  .journey-step { position: relative; padding-bottom: 26px; }
+  .journey-step:last-child { padding-bottom: 0; }
+  .journey-step::before {
+    content: attr(data-index); position: absolute; left: -34px; top: 0;
+    display: grid; width: 24px; height: 24px; color: #0c1626; background: var(--primary);
+    border-radius: 50%; font-size: .74rem; font-weight: 800; place-items: center;
+  }
+  .journey-step h3 { font-size: 1.02rem; margin-bottom: 4px; }
+  .journey-step p { margin: 0; color: var(--muted); font-size: .95rem; line-height: 1.6; }
+
+  .spotlight {
+    position: relative; margin-top: 60px; padding: 34px 22px; overflow: hidden;
+    background: linear-gradient(160deg, var(--glass-strong), var(--soft));
+    border: 1px solid var(--border); border-radius: 28px; box-shadow: var(--shadow);
+  }
+  .spotlight::after {
+    content: ""; position: absolute; right: -25%; top: -35%; width: 65%; aspect-ratio: 1;
+    background: radial-gradient(circle, var(--glow-a), transparent 70%);
+    filter: blur(4px); opacity: .9;
+  }
+  .spotlight h2, .spotlight p { position: relative; }
+
+  .authority { margin-top: 60px; padding: 28px 20px; background: var(--glass); border: 1px solid var(--border); border-radius: 24px; }
+  .authority-head { display: flex; align-items: center; gap: 14px; }
+  .authority-photo {
+    flex: 0 0 auto; width: 64px; height: 64px; border-radius: 50%;
+    background: linear-gradient(140deg, var(--primary), var(--primary-deep));
+    display: grid; place-items: center; color: #0c1626; font-weight: 800; font-size: 1.1rem;
+    border: 2px dashed rgba(143,192,242,.5);
+  }
+  .authority-name { font-size: 1.12rem; font-weight: 800; }
+  .authority-title { color: var(--muted); font-size: .88rem; margin-top: 3px; }
+  .authority p.bio { margin-top: 16px; color: var(--muted); font-size: .96rem; line-height: 1.68; }
+
+  .offer { margin-top: 60px; padding: 32px 20px; text-align: center; background: var(--glass-strong); border: 1px solid var(--border); border-radius: 28px; box-shadow: var(--shadow); }
+  .offer-title { font-size: clamp(1.4rem, 6vw, 1.8rem); }
+  .price-row { margin-top: 18px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .price-slot {
+    padding: 11px 18px; background: var(--glass); border: 1px dashed var(--border);
+    border-radius: 12px; color: var(--muted); font-size: .9rem; width: 100%; max-width: 320px;
+  }
+  .offer p.note { max-width: 42ch; margin: 14px auto 0; color: var(--muted); font-size: .9rem; }
+  .secure-badge { display: inline-flex; align-items: center; gap: 8px; margin-top: 18px; color: var(--muted); font-size: .85rem; }
+
+  footer { margin-top: 50px; text-align: center; color: var(--muted); font-size: .82rem; padding-bottom: 8px; }
+
+  .reveal { opacity: 0; transform: translateY(18px); transition: opacity .7s ease, transform .7s ease; }
+  .reveal.is-visible { opacity: 1; transform: translateY(0); }
+  noscript .reveal { opacity: 1; }
+
+  .art-orbit { animation: orbit 27s linear infinite; transform-origin: 200px 150px; }
+  .art-pulse-slow { animation: pulseSlow 5s ease-in-out infinite; transform-origin: 200px 150px; }
+  .art-glint { animation: glint 4.5s ease-in-out infinite; }
+  @keyframes orbit { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  @keyframes pulseSlow { 0%, 100% { opacity: .8; transform: scale(1); } 50% { opacity: 1; transform: scale(1.05); } }
+  @keyframes glint { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
+
+  /* ===================== botão fixo de checkout ===================== */
+  .sticky-cta {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+    display: flex; justify-content: center;
+    padding: 12px 16px calc(12px + var(--safe-b));
+    background: linear-gradient(to top, var(--bg-1) 55%, transparent);
+    pointer-events: none;
+    opacity: 0; transform: translateY(14px);
+    transition: opacity .3s ease, transform .3s ease;
+  }
+  .sticky-cta.is-visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+  .sticky-cta a {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; max-width: 480px; min-height: 52px; padding: 12px 20px;
+    color: #0c1626; background: linear-gradient(120deg, var(--primary-strong), var(--primary));
+    border-radius: 14px; box-shadow: 0 14px 30px rgba(0,0,0,.35);
+    font: inherit; font-family: 'DM Sans', ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: .96rem; font-weight: 600; text-transform: uppercase; letter-spacing: .02em; text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  @media (min-width: 600px) {
+    main { padding: 34px 32px 100px; }
+    .method-grid { grid-template-columns: repeat(2, 1fr); }
+    .checklist { grid-template-columns: repeat(2, 1fr); }
+    .sticky-cta a { max-width: 360px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition-duration: .01ms !important; }
+    .reveal { opacity: 1; transform: none; }
+    html { scroll-behavior: auto; }
+  }
+
+  /* Fonte Lora — aplicada exclusivamente à seção "Talvez você reconheça alguns desses momentos".
+     Apenas a família tipográfica muda; tamanho, peso e espaçamento permanecem os mesmos. */
+  /* Lora agora é aplicada globalmente aos títulos (h1, h2, h3) e às frases dos cards (.pain-quote); textos desta seção usam DM Sans. */
+</style>
+</head>
+<body>
+<main>
+
+  <div class="top-row">
+    <div class="brand"><span class="brand-mark" aria-hidden="true"></span>Seu espaço de cuidado</div>
+    <div class="specialist-chip">Por Aline Liao Nogueira</div>
+  </div>
+
+  <!-- ===================== 1. HERO (reorganizado) ===================== -->
+  <section class="hero" id="hero">
+    <div class="hero-art" aria-hidden="true">
+      <svg viewBox="0 0 400 320" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="gEsp1" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#8fc0f2" stop-opacity=".5"/>
+            <stop offset="100%" stop-color="#8fc0f2" stop-opacity="0"/>
+          </radialGradient>
+          <radialGradient id="gEsp2" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#33587f" stop-opacity=".65"/>
+            <stop offset="100%" stop-color="#33587f" stop-opacity="0"/>
+          </radialGradient>
+          <filter id="blurEsp" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="19"/></filter>
+        </defs>
+        <circle cx="140" cy="180" r="115" fill="url(#gEsp2)" filter="url(#blurEsp)"/>
+        <circle cx="260" cy="120" r="90" fill="url(#gEsp1)" filter="url(#blurEsp)"/>
+        <circle class="art-pulse-slow" cx="200" cy="150" r="32" fill="none" stroke="#8fc0f2" stroke-opacity=".3" stroke-width="1.4"/>
+        <g class="art-orbit"><circle cx="200" cy="88" r="4" class="art-glint" fill="#b9dcfa"/></g>
+        <g class="art-orbit" style="animation-duration:35s; animation-direction:reverse;"><circle cx="200" cy="212" r="3" class="art-glint" fill="#d6bd8b" style="animation-delay:2s"/></g>
+        <circle cx="200" cy="150" r="6" fill="#b9dcfa"/>
+      </svg>
+    </div>
+
+    <div class="hero-content">
+      <p class="eyebrow">Seu direcionamento</p>
+
+      <h1 class="display">Quando a espera começa a ocupar espaço demais</h1>
+
+      <!-- VSL: espaço reservado, proporção 16:9. Para ativar futuramente, substitua este bloco por um <iframe> (YouTube/Vimeo) ou <video> com a URL da apresentação. -->
+      <div class="vsl-slot">
+        <svg width="38" height="38" viewBox="0 0 38 38" fill="none"><circle cx="19" cy="19" r="18" stroke="currentColor" stroke-opacity=".5"/><path d="M16 12l10 7-10 7V12z" fill="currentColor" fill-opacity=".75"/></svg>
+        <span>Apresentação em vídeo</span>
+      </div>
+
+      <p class="subtitle">Depois de uma separação, a saudade se mistura com esperança e dúvida — e existe um caminho para compreender e transformar esse padrão.</p>
+
+      <!-- Três itens visuais: dor, impacto e autocuidado. Ícones originais em SVG inline. -->
+      <div class="mini-features">
+        <div class="mini-feature">
+          <span class="mini-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 20s-7-4.5-9-9.5C1.5 6 4 3 7.2 3c2 0 3.6 1.2 4.8 3 1.2-1.8 2.8-3 4.8-3C20 3 22.5 6 21 10.5 19 15.5 12 20 12 20z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M12 9l-1.4 2.4 2 1.6-1.6 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <div class="mini-text">
+            <h3>Quando a espera ocupa espaço</h3>
+            <p>A expectativa por uma mensagem pode fazer parecer que a sua vida ficou em pausa.</p>
+          </div>
+        </div>
+        <div class="mini-feature">
+          <span class="mini-icon alt" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="2.6" stroke="currentColor" stroke-width="1.5"/><path d="M12 4.5v2.3M12 17.2v2.3M4.5 12h2.3M17.2 12h2.3M6.8 6.8l1.6 1.6M15.6 15.6l1.6 1.6M17.2 6.8l-1.6 1.6M8.4 15.6l-1.6 1.6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></span>
+          <div class="mini-text">
+            <h3>A mente fica em alerta</h3>
+            <p>Pequenos sinais podem ganhar um peso enorme quando ainda existe esperança de aproximação.</p>
+          </div>
+        </div>
+        <div class="mini-feature">
+          <span class="mini-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 20V11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M12 12c0-3.5 2.5-6 6-6.5-.3 3.6-2.6 6-6 6.5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M12 14c0-3-2-5-5.4-5.6C6.9 12 9 14 12 14z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg></span>
+          <div class="mini-text">
+            <h3>Um caminho de mais clareza</h3>
+            <p>Compreender seus padrões e cuidar das suas reações pode ajudar você a fazer escolhas mais conscientes.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Primeiro botão de oferta: usa CHECKOUT_URL, definido no <script> ao final da página. -->
+      <a class="cta-button" id="cta-hero" href="#">Começar meu autocuidado</a>
+      <p class="cta-note">Compra 100% segura. Acesso digital via plataforma Kiwify.</p>
+    </div>
+  </section>
+
+  <!-- ===================== 2. IDENTIFICAÇÃO EMOCIONAL + CARDS E GATILHOS ===================== -->
+  <!-- Título e frases dos cards desta seção usam Lora (regra global de h1/h2/h3 e .pain-quote); demais textos usam DM Sans. -->
+  <section class="block reveal lora-section">
+    <p class="eyebrow">Você se vê aqui?</p>
+    <h2 class="display">Talvez você reconheça alguns desses momentos</h2>
+    <p class="lead">Toque em cada frase — não é um novo teste, apenas um espaço para você se reconhecer.</p>
+    <div class="pain-grid">
+      <button type="button" class="pain-card" aria-expanded="false">
+        <span class="pain-quote"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M3 8l3-3M3 8l3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>"Checo o celular sem parar, esperando uma mensagem."</span>
+        <div class="pain-detail"><span>Esse movimento tenta preencher a incerteza — mas raramente traz o alívio que se busca.</span></div>
+      </button>
+      <button type="button" class="pain-card" aria-expanded="false">
+        <span class="pain-quote"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M3 8l3-3M3 8l3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>"Imagino cenários de uma possível volta, mesmo sem saber."</span>
+        <div class="pain-detail"><span>A mente cria histórias quando não há uma resposta clara — é uma forma de tentar controlar a incerteza.</span></div>
+      </button>
+      <button type="button" class="pain-card" aria-expanded="false">
+        <span class="pain-quote"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M3 8l3-3M3 8l3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>"Interpreto qualquer sinal como uma possibilidade de reaproximação."</span>
+        <div class="pain-detail"><span>Pequenos gestos ganham um peso enorme quando se está esperando algo específico.</span></div>
+      </button>
+      <button type="button" class="pain-card" aria-expanded="false">
+        <span class="pain-quote"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M3 8l3-3M3 8l3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>"Sinto que minha vida está em pausa esperando uma resposta."</span>
+        <div class="pain-detail"><span>A espera sem prazo pode dar a sensação de que nada mais pode avançar até ali.</span></div>
+      </button>
+      <button type="button" class="pain-card" aria-expanded="false">
+        <span class="pain-quote"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M3 8l3-3M3 8l3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>"Saudade e expectativa se misturam o tempo todo."</span>
+        <div class="pain-detail"><span>É possível sentir saudade e, ao mesmo tempo, cansaço de continuar esperando — os dois fazem sentido.</span></div>
+      </button>
+    </div>
+  </section>
+
+  <!-- ===================== 3. EXPLICAÇÃO DA DINÂMICA ===================== -->
+  <section class="block reveal">
+    <p class="eyebrow">Um pouco mais de clareza</p>
+    <h2 class="display">Isso não é fraqueza — é um padrão que pode ser compreendido</h2>
+    <p>Ficar em estado de alerta depois de uma separação não é falta de força de vontade. Muitas vezes é medo de perder de vez alguém importante, tentando se expressar através da espera e da vigilância constante.</p>
+    <p>Esse padrão costuma se relacionar com o que a psicologia chama de apego ansioso: uma tendência a buscar segurança por meio da proximidade, mesmo diante da incerteza. Não é uma definição sobre quem você é — é uma peça a mais para entender a própria dinâmica emocional, sem rótulos.</p>
+  </section>
+
+  <!-- ===================== 4. MÉTODO ===================== -->
+  <section class="block reveal" id="metodo">
+    <p class="eyebrow">A proposta</p>
+    <h2 class="display">Saindo da Dor do Apego Ansioso</h2>
+    <p>Um método para compreender a própria dinâmica emocional e construir mais segurança nas relações — passo a passo.</p>
+    <div class="method-grid">
+      <div class="method-card">
+        <span class="method-num">01</span>
+        <div><h3>Compreender os gatilhos emocionais</h3><p>Identificar o que ativa a ansiedade nos momentos de espera.</p></div>
+      </div>
+      <div class="method-card">
+        <span class="method-num">02</span>
+        <div><h3>Reconhecer reações automáticas antes de agir</h3><p>Perceber o impulso de checar ou procurar antes que ele conduza a atitude.</p></div>
+      </div>
+      <div class="method-card">
+        <span class="method-num">03</span>
+        <div><h3>Desenvolver mais regulação e segurança interna</h3><p>Construir uma base emocional que não dependa de uma resposta externa.</p></div>
+      </div>
+      <div class="method-card">
+        <span class="method-num">04</span>
+        <div><h3>Construir escolhas mais conscientes nos relacionamentos</h3><p>Recuperar presença no próprio tempo, com mais clareza.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== 5. PARA QUEM É ===================== -->
+  <section class="block reveal">
+    <p class="eyebrow">Para quem é</p>
+    <h2 class="display">Este método é para você se...</h2>
+    <ul class="checklist">
+      <li><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="8.3" stroke="currentColor" stroke-opacity=".5"/><path d="M5.5 9.2l2.3 2.3 4.7-4.7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Você sente que sua paz muda conforme uma mensagem chega ou não.</li>
+      <li><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="8.3" stroke="currentColor" stroke-opacity=".5"/><path d="M5.5 9.2l2.3 2.3 4.7-4.7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Você quer parar de checar o celular compulsivamente.</li>
+      <li><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="8.3" stroke="currentColor" stroke-opacity=".5"/><path d="M5.5 9.2l2.3 2.3 4.7-4.7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Você sente que a vida ficou em pausa esperando uma resposta.</li>
+      <li><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="8.3" stroke="currentColor" stroke-opacity=".5"/><path d="M5.5 9.2l2.3 2.3 4.7-4.7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Você quer entender por que reage assim e construir uma forma diferente de lidar.</li>
+      <li><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="8.3" stroke="currentColor" stroke-opacity=".5"/><path d="M5.5 9.2l2.3 2.3 4.7-4.7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Você está cansado(a) de esperar e quer recuperar seu próprio ritmo.</li>
+    </ul>
+  </section>
+
+  <section class="spotlight reveal">
+    <p class="eyebrow">Um novo olhar</p>
+    <h2 class="display" style="margin-bottom:18px;">Da dor para um próximo passo com cuidado</h2>
+    <div class="journey">
+      <div class="journey-step" data-index="1"><h3>A dor</h3><p>Saudade, expectativa e a sensação de vida em suspenso.</p></div>
+      <div class="journey-step" data-index="2"><h3>A compreensão</h3><p>Entender que esse estado de alerta tem raízes emocionais, e não é fraqueza.</p></div>
+      <div class="journey-step" data-index="3"><h3>O cuidado</h3><p>Aprender a observar a própria espera com mais gentileza e presença.</p></div>
+      <div class="journey-step" data-index="4"><h3>O próximo passo</h3><p>Recuperar segurança interna e escolhas mais conscientes.</p></div>
+    </div>
+  </section>
+
+  <!-- ===================== 6. AUTORIDADE ===================== -->
+  <section class="authority reveal">
+    <div class="authority-head">
+      <div class="authority-photo">AL</div>
+      <div>
+        <div class="authority-name">Aline Liao Nogueira</div>
+        <div class="authority-title">Especialista em Teoria do Apego e Desenvolvimento Emocional</div>
+      </div>
+    </div>
+    <p class="bio">Com dedicação ao estudo da teoria do apego e do desenvolvimento emocional, Aline se propõe a ajudar pessoas a compreenderem os próprios padrões nas relações — com responsabilidade, sem promessas exageradas e com foco em construir mais clareza e segurança interna.</p>
+  </section>
+
+  <!-- ===================== 7. OFERTA E CTA FINAL ===================== -->
+  <section class="offer reveal" id="oferta">
+    <p class="eyebrow">A proposta</p>
+    <h2 class="display offer-title" id="product-name">Saindo da Dor do Apego Ansioso</h2>
+    <div class="price-row">
+      <span class="price-original" id="price-original">R$ 179,90</span>
+      <span class="price-label">Por apenas</span>
+      <span class="price-current" id="price-current">R$ 47,90</span>
+    </div>
+    <a class="cta-button" id="cta-final" href="#">Quero acessar o conteúdo</a>
+    <p class="note">Acesso imediato após a confirmação do pagamento.</p>
+    <div class="secure-badge">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="3" y="7" width="10" height="6.5" rx="1.4" stroke="currentColor"/><path d="M5 7V5a3 3 0 0 1 6 0v2" stroke="currentColor"/></svg>
+      Compra 100% segura · Plataforma Kiwify
+    </div>
+  </section>
+
+  <footer>© Aline Liao Nogueira · Seu espaço de cuidado</footer>
+</main>
+
+<div class="sticky-cta" id="sticky-cta">
+  <a href="#" id="cta-sticky">Começar meu autocuidado</a>
+</div>
+
+<noscript><style>.reveal{opacity:1!important;transform:none!important;}</style></noscript>
+
+<script>
+  // Dados do produto e checkout — troque aqui quando quiser atualizar.
+  const PRODUCT_NAME = 'Saindo da Dor do Apego Ansioso';
+  const ORIGINAL_PRICE = 'R$ 179,90';
+  const CURRENT_PRICE = 'R$ 47,90';
+  const CHECKOUT_URL = 'https://pay.kiwify.com.br/MhJ3B2S?afid=RJfriJIf';
+
+  const productNameEl = document.querySelector('#product-name');
+  const priceOriginalEl = document.querySelector('#price-original');
+  const priceCurrentEl = document.querySelector('#price-current');
+  if (productNameEl) productNameEl.textContent = PRODUCT_NAME;
+  if (priceOriginalEl) priceOriginalEl.textContent = ORIGINAL_PRICE;
+  if (priceCurrentEl) priceCurrentEl.textContent = CURRENT_PRICE;
+
+  // Todos os botões de oferta (primeiro CTA, botão fixo e CTA final) usam CHECKOUT_URL.
+  document.querySelectorAll('#cta-hero, #cta-final, #cta-sticky').forEach((btn) => {
+    if (CHECKOUT_URL) {
+      btn.href = CHECKOUT_URL;
+    } else {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        console.info('CHECKOUT_URL ainda não configurada. Defina-a no script desta página.');
+      });
+    }
+  });
+
+  document.querySelectorAll('.pain-card').forEach((card) => {
+    card.addEventListener('click', () => {
+      const isActive = card.classList.toggle('active');
+      card.setAttribute('aria-expanded', String(isActive));
+    });
+  });
+
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const revealEls = document.querySelectorAll('.reveal');
+  if (prefersReducedMotion || !('IntersectionObserver' in window)) {
+    revealEls.forEach((el) => el.classList.add('is-visible'));
+  } else {
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: .16 });
+    revealEls.forEach((el) => revealObserver.observe(el));
+  }
+
+  const stickyBar = document.querySelector('#sticky-cta');
+  const heroEl = document.querySelector('#hero');
+  const offerEl = document.querySelector('#oferta');
+  let pastHero = false;
+  let nearOffer = false;
+  const updateSticky = () => {
+    stickyBar.classList.toggle('is-visible', pastHero && !nearOffer);
+  };
+  if ('IntersectionObserver' in window && heroEl && offerEl) {
+    new IntersectionObserver((entries) => {
+      entries.forEach((entry) => { pastHero = !entry.isIntersecting; });
+      updateSticky();
+    }, { threshold: 0 }).observe(heroEl);
+    new IntersectionObserver((entries) => {
+      entries.forEach((entry) => { nearOffer = entry.isIntersecting; });
+      updateSticky();
+    }, { threshold: 0, rootMargin: '0px 0px -10% 0px' }).observe(offerEl);
+  }
+</script>
+</body>
+</html>

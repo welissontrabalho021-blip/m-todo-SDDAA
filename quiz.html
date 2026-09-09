@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f8f7">
+  <title>Entenda melhor a sua situação</title>
+  <!-- Tipografia do projeto: Lora (títulos e destaques) + DM Sans (textos, opções e botões). -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    /* CORES: ajuste esta seção para mudar a identidade visual do quiz. */
+    :root {
+      --background: #f4f8f7;
+      --surface: #ffffff;
+      --text: #253a38;
+      --muted: #607673;
+      --primary: #4f837c;
+      --primary-dark: #396961;
+      --primary-soft: #e5f0ed;
+      --border: #dce9e6;
+      --shadow: 0 16px 40px rgba(37, 58, 56, .10);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      min-height: 100dvh; /* corrige "pulo" de layout com a barra de endereço no mobile */
+      margin: 0;
+      color: var(--text);
+      background: linear-gradient(145deg, #eff8f5 0%, #eaf2f7 52%, #f8f4ed 100%);
+      font-family: 'DM Sans', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      transition: background 700ms ease;
+    }
+
+    /* FUNDOS: cada etapa tem uma combinação tranquila própria. */
+    body[data-theme="relationship"] { background: linear-gradient(145deg, #edf8f4 0%, #dceeea 50%, #f2f8f5 100%); }
+    body[data-theme="separated"] { background: linear-gradient(145deg, #f0f5fb 0%, #e5edf7 48%, #f7f3ed 100%); }
+    body[data-theme="return"] { background: linear-gradient(145deg, #f7f2fa 0%, #ece5f5 48%, #f4f6f4 100%); }
+
+    body::before, body::after {
+      position: fixed;
+      z-index: -1;
+      width: min(72vw, 430px);
+      aspect-ratio: 1;
+      content: "";
+      pointer-events: none;
+      filter: blur(2px);
+      opacity: .72;
+      transition: background 700ms ease, transform 700ms ease;
+    }
+    body::before {
+      top: -15vw;
+      right: -22vw;
+      border-radius: 57% 43% 59% 41% / 46% 54% 46% 54%;
+      background: rgba(158, 207, 192, .46);
+      transform: rotate(-18deg);
+    }
+    body::after {
+      bottom: -20vw;
+      left: -25vw;
+      border-radius: 43% 57% 42% 58% / 54% 43% 57% 46%;
+      background: rgba(193, 211, 234, .52);
+      transform: rotate(18deg);
+    }
+    body[data-theme="relationship"]::before { background: rgba(132, 197, 177, .48); transform: rotate(8deg) scale(1.06); }
+    body[data-theme="relationship"]::after { background: rgba(199, 228, 215, .63); }
+    body[data-theme="separated"]::before { background: rgba(159, 187, 221, .45); transform: rotate(-28deg) scale(1.04); }
+    body[data-theme="separated"]::after { background: rgba(220, 204, 184, .45); }
+    body[data-theme="return"]::before { background: rgba(194, 166, 213, .43); transform: rotate(18deg) scale(1.08); }
+    body[data-theme="return"]::after { background: rgba(173, 208, 196, .45); }
+    /* Pequenas mudanças de composição a cada pergunta mantêm a experiência viva. */
+    body[data-step="1"]::before { transform: translateX(-4vw) rotate(-30deg) scale(.94); }
+    body[data-step="2"]::after { transform: translateX(7vw) rotate(32deg) scale(1.08); }
+    body[data-step="3"]::before { transform: translateY(5vw) rotate(28deg) scale(1.1); }
+    body[data-step="4"]::after { transform: translateY(-7vw) rotate(-12deg) scale(.96); }
+
+    main {
+      display: grid;
+      min-height: 100vh;
+      min-height: 100dvh;
+      padding: 24px 16px;
+      place-items: center;
+    }
+
+    .quiz-card {
+      width: min(100%, 480px);
+      padding: 28px 20px 22px;
+      background: var(--surface);
+      border: 1px solid rgba(220, 233, 230, .9);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      margin-bottom: 34px;
+      padding: 9px 13px;
+      color: var(--primary-dark);
+      background: rgba(255, 255, 255, .64);
+      border: 1px solid rgba(255, 255, 255, .78);
+      border-radius: 999px;
+      box-shadow: 0 5px 18px rgba(37, 58, 56, .07);
+      font-size: .93rem;
+      font-weight: 600;
+      letter-spacing: .02em;
+    }
+
+    .brand-mark {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background: var(--primary);
+      box-shadow: 0 0 0 5px var(--primary-soft);
+    }
+
+    .screen { animation: enter .28s ease both; }
+    .screen[hidden] { display: none; }
+
+    .eyebrow {
+      margin: 0 0 12px;
+      color: var(--primary-dark);
+      font-size: .82rem;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    h1, h2 { margin: 0; font-family: 'Lora', Georgia, 'Times New Roman', serif; font-weight: 600; letter-spacing: -.01em; }
+    h1 { font-size: clamp(1.9rem, 8vw, 2.45rem); line-height: 1.12; }
+    h2 { font-size: clamp(1.55rem, 6.5vw, 2rem); line-height: 1.18; }
+
+    .intro, .result-copy {
+      margin: 18px 0 0;
+      color: var(--muted);
+      font-size: 1.03rem;
+      line-height: 1.6;
+    }
+
+    /* A primeira tela recebe uma composição mais centrada e acolhedora. */
+    #welcome-screen { padding: 18px 0 8px; text-align: center; }
+    #welcome-screen .brand { margin-bottom: 38px; }
+    #welcome-screen .eyebrow { margin-bottom: 14px; }
+    #welcome-screen .intro { max-width: 375px; margin-right: auto; margin-left: auto; }
+    #welcome-screen .primary-button { max-width: 375px; }
+
+    .primary-button, .option {
+      width: 100%;
+      min-height: 56px;
+      border-radius: 14px;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform .16s ease, background .16s ease, border-color .16s ease, box-shadow .16s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .primary-button {
+      margin-top: 32px;
+      padding: 14px 20px;
+      color: #fff;
+      background: var(--primary);
+      border: 1px solid var(--primary);
+      box-shadow: 0 7px 16px rgba(79, 131, 124, .2);
+    }
+
+    .primary-button:hover, .primary-button:focus-visible { background: var(--primary-dark); }
+    .primary-button:active, .option:active { transform: scale(.985); }
+
+    .progress-area { margin-bottom: 30px; }
+    .progress-label { margin: 0 0 9px; color: var(--muted); font-size: .88rem; font-weight: 600; }
+    .progress-track { height: 7px; overflow: hidden; border-radius: 99px; background: var(--primary-soft); }
+    .progress-value { width: 25%; height: 100%; border-radius: inherit; background: var(--primary); transition: width .28s ease; }
+
+    .options { display: grid; gap: 12px; margin-top: 28px; }
+    .option {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px;
+      color: var(--text);
+      text-align: left;
+      background: var(--surface);
+      border: 1px solid var(--border);
+    }
+    .option:hover, .option:focus-visible { border-color: var(--primary); background: #fbfdfc; box-shadow: 0 4px 14px rgba(37, 58, 56, .06); outline: none; }
+    .option-letter {
+      display: grid;
+      flex: 0 0 31px;
+      width: 31px;
+      height: 31px;
+      color: var(--primary-dark);
+      background: var(--primary-soft);
+      border-radius: 50%;
+      font-size: .87rem;
+      place-items: center;
+    }
+    .option-text { line-height: 1.35; }
+
+    .result-note {
+      margin: 14px 0 0;
+      padding: 10px 12px;
+      color: var(--primary-dark);
+      background: var(--primary-soft);
+      border-radius: 10px;
+      font-size: .88rem;
+      line-height: 1.45;
+      text-align: center;
+    }
+    .result-note[hidden] { display: none; }
+
+    .result-icon {
+      display: grid;
+      width: 54px;
+      height: 54px;
+      margin-bottom: 24px;
+      color: var(--primary-dark);
+      background: var(--primary-soft);
+      border-radius: 50%;
+      font-size: 1.45rem;
+      place-items: center;
+    }
+
+    @keyframes enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    @media (min-width: 600px) { .quiz-card { padding: 38px 36px 30px; } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; } }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="quiz-card" aria-live="polite">
+      <!-- Troque este nome pela marca, se desejar. -->
+      <div class="brand"><span class="brand-mark" aria-hidden="true"></span>Seu espaço de cuidado</div>
+
+      <div class="screen" id="welcome-screen">
+        <p class="eyebrow">Vamos começar</p>
+        <h1>Um passo de cada vez.</h1>
+        <p class="intro">Precisamos identificar melhor a sua situação e direcionar você para o conteúdo mais adequado.</p>
+        <button class="primary-button" id="start-button" type="button">Começar</button>
+      </div>
+
+      <div class="screen" id="question-screen" hidden>
+        <div class="progress-area" aria-label="Progresso do questionário">
+          <p class="progress-label" id="progress-label">Pergunta 1 de 4</p>
+          <div class="progress-track"><div class="progress-value" id="progress-value"></div></div>
+        </div>
+        <p class="eyebrow" id="question-context">Sua situação</p>
+        <h2 id="question-title" tabindex="-1"></h2>
+        <div class="options" id="options" role="group" aria-label="Opções de resposta"></div>
+      </div>
+
+      <div class="screen" id="result-screen" hidden>
+        <div class="result-icon" aria-hidden="true">✓</div>
+        <p class="eyebrow">Seu direcionamento</p>
+        <h2 id="result-title"></h2>
+        <p class="result-copy">Preparamos um conteúdo que pode ajudar você a refletir sobre esse momento com mais clareza e cuidado.</p>
+        <button class="primary-button" id="continue-button" type="button">Continuar</button>
+        <p class="result-note" id="result-note" role="status" hidden>O destino ainda não foi configurado para este resultado. Defina a URL em <code>paths</code> no JavaScript.</p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // TEXTOS: edite as perguntas e respostas abaixo conforme necessário.
+    // URLs: defina os destinos finais aqui. Para teste local, apontam para os arquivos .html correspondentes.
+    // Ao publicar o site, troque cada "url" por seu caminho definitivo (ex.: '/afastamento', '/espera', '/retorno').
+    const paths = {
+      relationship: {
+        result: 'Afastamento dentro do relacionamento',
+        url: 'afastamento.html',
+        questions: [
+          { title: 'Quando seu parceiro se afasta, o que mais pesa?', options: ['Tentar entender o que mudou', 'Esperar uma mensagem ou aproximação', 'Sentir vontade de procurar'] },
+          { title: 'O que mais traz segurança para você?', options: ['Sentir a pessoa próxima', 'Receber atenção e respostas', 'Saber que está tudo bem entre vocês'] },
+          { title: 'O que você gostaria de entender melhor?', options: ['Por que o afastamento mexe tanto', 'Como lidar melhor com essa distância', 'Como ter mais segurança na relação'] }
+        ]
+      },
+      separated: {
+        result: 'Espera e expectativa',
+        url: 'espera.html',
+        questions: [
+          { title: 'Depois da separação, o que mais pesa?', options: ['A espera por uma mensagem', 'A esperança de uma aproximação', 'As dúvidas sobre o que poderia acontecer'] },
+          { title: 'Quando pensa nessa pessoa, o que mais aparece?', options: ['Vontade de receber uma mensagem', 'Esperança de uma volta', 'Dificuldade de seguir em frente'] },
+          { title: 'O que você gostaria de entender melhor?', options: ['Por que ainda existe essa expectativa', 'Como lidar melhor com essa espera', 'Como recuperar mais segurança emocional'] }
+        ]
+      },
+      return: {
+        result: 'Retorno e dificuldade de romper o ciclo',
+        url: 'retorno.html',
+        questions: [
+          { title: 'Quando essa pessoa reaparece, o que mais pesa?', options: ['A esperança de uma mudança', 'A vontade de responder', 'A dúvida sobre o que fazer'] },
+          { title: 'Depois que vocês se aproximam novamente, o que acontece?', options: ['A pessoa se afasta outra vez', 'Fico esperando o próximo contato', 'Começo a ter dúvidas novamente'] },
+          { title: 'O que você gostaria de entender melhor?', options: ['Por que é tão difícil dizer não', 'Por que esse ciclo continua', 'Como lidar melhor com esses retornos'] }
+        ]
+      }
+    };
+
+    const firstQuestion = {
+      title: 'Como está sua relação hoje?',
+      options: [
+        { text: 'Estou em um relacionamento', path: 'relationship' },
+        { text: 'Estou separado(a)', path: 'separated' },
+        { text: 'A relação terminou, mas ainda existem recaídas', path: 'return' }
+      ]
+    };
+
+    let currentStep = 0;
+    let selectedPath = null;
+    let isTransitioning = false; // evita avançar duas etapas com duplo toque acidental
+
+    const welcomeScreen = document.querySelector('#welcome-screen');
+    const questionScreen = document.querySelector('#question-screen');
+    const resultScreen = document.querySelector('#result-screen');
+    const progressLabel = document.querySelector('#progress-label');
+    const progressValue = document.querySelector('#progress-value');
+    const questionTitle = document.querySelector('#question-title');
+    const optionsContainer = document.querySelector('#options');
+    const resultTitle = document.querySelector('#result-title');
+    const resultNote = document.querySelector('#result-note');
+
+    document.querySelector('#start-button').addEventListener('click', () => {
+      welcomeScreen.hidden = true;
+      questionScreen.hidden = false;
+      renderQuestion();
+    });
+
+    function renderQuestion() {
+      const question = currentStep === 0 ? firstQuestion : paths[selectedPath].questions[currentStep - 1];
+      document.body.dataset.step = currentStep + 1;
+      progressLabel.textContent = `Pergunta ${currentStep + 1} de 4`;
+      progressValue.style.width = `${(currentStep + 1) * 25}%`;
+      questionTitle.textContent = question.title;
+      optionsContainer.replaceChildren();
+
+      question.options.forEach((option, index) => {
+        const text = typeof option === 'string' ? option : option.text;
+        const letter = String.fromCharCode(65 + index); // A, B, C, D... sem depender de lista fixa
+
+        const letterSpan = document.createElement('span');
+        letterSpan.className = 'option-letter';
+        letterSpan.textContent = letter;
+
+        const textSpan = document.createElement('span');
+        textSpan.className = 'option-text';
+        textSpan.textContent = text;
+
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'option';
+        button.append(letterSpan, textSpan);
+        button.addEventListener('click', () => selectAnswer(option));
+        optionsContainer.append(button);
+      });
+
+      // Move o foco para o título da pergunta, ajudando leitores de tela e navegação por teclado.
+      questionTitle.focus({ preventScroll: true });
+    }
+
+    function selectAnswer(option) {
+      if (isTransitioning) return; // ignora cliques repetidos enquanto a próxima tela é montada
+      isTransitioning = true;
+
+      if (currentStep === 0) {
+        selectedPath = option.path;
+        // A seleção inicial também muda a arte e o degradê do caminho escolhido.
+        document.body.dataset.theme = selectedPath;
+      }
+      currentStep += 1;
+      if (currentStep === 4) showResult();
+      else renderQuestion();
+
+      isTransitioning = false;
+    }
+
+    function showResult() {
+      document.body.dataset.step = 'result';
+      questionScreen.hidden = true;
+      resultTitle.textContent = paths[selectedPath].result;
+      resultNote.hidden = true;
+      resultScreen.hidden = false;
+      document.querySelector('#continue-button').focus({ preventScroll: true });
+    }
+
+    document.querySelector('#continue-button').addEventListener('click', () => {
+      const destination = paths[selectedPath].url;
+      // REDIRECIONAMENTO: substitua esta linha por outra ação, se desejar.
+      if (destination) {
+        window.location.assign(destination);
+      } else {
+        // Antes falhava em silêncio (só no console); agora avisa visivelmente na tela.
+        console.info('Destino ainda não configurado para:', paths[selectedPath].result);
+        resultNote.hidden = false;
+      }
+    });
+  </script>
+</body>
+</html>
