@@ -96,13 +96,12 @@
   .hero .subtitle { margin: 24px 0 0; max-width: 42ch; color: var(--muted); font-size: 1.05rem; line-height: 1.68; }
 
   .vsl-slot {
-    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+    display: flex; align-items: center; justify-content: center;
     width: 100%; max-width: 480px; aspect-ratio: 16 / 9;
-    margin: 26px 0 0; padding: 16px;
-    background: var(--glass); border: 1px dashed var(--border); border-radius: 20px;
-    color: var(--muted); font-size: .88rem; text-align: center;
+    margin: 26px 0 0;
+    background: var(--glass); border-radius: 20px; overflow: hidden;
   }
-  .vsl-slot svg { flex: 0 0 auto; opacity: .85; }
+  .vsl-slot iframe { display: block; width: 100%; height: 100%; border: 0; border-radius: inherit; }
 
   .cta-button {
     position: relative;
@@ -331,10 +330,17 @@
 
       <h1 class="display">Quando o ciclo de idas e vindas se repete</h1>
 
-      <!-- VSL: espaço reservado, proporção 16:9. Para ativar futuramente, substitua este bloco por um <iframe> (YouTube/Vimeo) ou <video> com a URL da apresentação. -->
+      <!-- VSL: vídeo incorporado da Viddler, proporção 16:9. -->
       <div class="vsl-slot">
-        <svg width="38" height="38" viewBox="0 0 38 38" fill="none"><circle cx="19" cy="19" r="18" stroke="currentColor" stroke-opacity=".5"/><path d="M16 12l10 7-10 7V12z" fill="currentColor" fill-opacity=".75"/></svg>
-        <span>Apresentação em vídeo</span>
+        <iframe 
+          src="https://viddler.com/embed/player?id=17772&color=default"
+          width="100%"
+          style="aspect-ratio: 16/9; width: 100%;"
+          frameborder="0"
+          allow="autoplay; fullscreen"
+          allowfullscreen
+          title="Retorno">
+        </iframe>
       </div>
 
       <p class="subtitle">Um retorno pode trazer alívio, esperança e confusão ao mesmo tempo — e existe um caminho para compreender e transformar esse padrão.</p>
