@@ -527,7 +527,17 @@
   const PRODUCT_NAME = 'Saindo da Dor do Apego Ansioso';
   const ORIGINAL_PRICE = 'R$ 179,90';
   const CURRENT_PRICE = 'R$ 47,90';
-  const CHECKOUT_URL = 'https://pay.kiwify.com.br/MhJ3B2S?afid=RJfriJIf';
+  // Checkout com código de origem (src) para identificar, dentro da Kiwify, de qual página veio a venda.
+  // flow_a identifica vendas vindas da página de afastamento; flow_b, da página de espera; flow_c, da página de retorno.
+  // Os códigos são neutros — não carregam informações emocionais nem respostas individuais do quiz —
+  // e servem apenas para organização de vendas na Kiwify. NÃO enviar esses códigos ao Meta Pixel como evento ou parâmetro.
+  const CHECKOUT_BASE_URL = 'https://pay.kiwify.com.br/MhJ3B2S?afid=RJfriJIf';
+  const CHECKOUT_AFASTAMENTO = `${CHECKOUT_BASE_URL}&src=flow_a`;
+  const CHECKOUT_ESPERA = `${CHECKOUT_BASE_URL}&src=flow_b`;
+  const CHECKOUT_RETORNO = `${CHECKOUT_BASE_URL}&src=flow_c`;
+
+  // Esta página (Afastamento) usa o código flow_a.
+  const CHECKOUT_URL = CHECKOUT_AFASTAMENTO;
 
   const productNameEl = document.querySelector('#product-name');
   const priceOriginalEl = document.querySelector('#price-original');
