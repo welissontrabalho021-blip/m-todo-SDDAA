@@ -227,6 +227,46 @@
       place-items: center;
     }
 
+    /* Banner de consentimento de cookies/LGPD — mesma identidade visual do quiz. */
+    .cookie-banner {
+      position: fixed;
+      left: 12px;
+      right: 12px;
+      bottom: 12px;
+      z-index: 50;
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 16px 18px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      font-size: .88rem;
+      color: var(--muted);
+      animation: enter .28s ease both;
+    }
+    .cookie-banner[hidden] { display: none; }
+    .cookie-banner p { margin: 0 0 12px; line-height: 1.5; }
+    .cookie-actions { display: flex; gap: 10px; }
+    .cookie-btn {
+      flex: 1;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font: inherit;
+      font-weight: 600;
+      font-size: .86rem;
+      cursor: pointer;
+      border: 1px solid var(--primary);
+      transition: transform .16s ease, background .16s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .cookie-btn:active { transform: scale(.985); }
+    .cookie-btn-primary { color: #fff; background: var(--primary); }
+    .cookie-btn-primary:hover, .cookie-btn-primary:focus-visible { background: var(--primary-dark); }
+    .cookie-btn-secondary { color: var(--primary-dark); background: transparent; }
+    .cookie-btn-secondary:hover, .cookie-btn-secondary:focus-visible { background: var(--primary-soft); }
+    @media (min-width: 480px) { .cookie-banner { left: auto; right: 20px; bottom: 20px; } }
+
     @keyframes enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
     @media (min-width: 600px) { .quiz-card { padding: 38px 36px 30px; } }
     @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; } }
@@ -266,7 +306,89 @@
     </section>
   </main>
 
+  <!-- Banner de consentimento de cookies/LGPD: mesmo padrão usado nas páginas de venda. -->
+  <div class="cookie-banner" id="cookie-banner" role="dialog" aria-live="polite" aria-label="Consentimento de cookies" hidden>
+    <p>Usamos cookies para entender como você chegou até aqui e melhorar sua experiência. Você pode aceitar ou recusar os cookies não essenciais.</p>
+    <div class="cookie-actions">
+      <button type="button" id="cookie-decline" class="cookie-btn cookie-btn-secondary">Recusar</button>
+      <button type="button" id="cookie-accept" class="cookie-btn cookie-btn-primary">Aceitar</button>
+    </div>
+  </div>
+
   <script>
+    // ===================== LGPD / Cookies + Meta Pixel =====================
+    // Mesmo Pixel ID usado nas páginas de venda. O Pixel só é carregado depois do aceite do banner
+    // (ou imediatamente, em visitas futuras, se o consentimento já tiver sido dado antes).
+    const META_PIXEL_ID = '1034542082314155';
+    const COOKIE_CONSENT_KEY = 'cookie_consent'; // 'accepted' | 'declined' — guardado entre sessões (localStorage).
+    let pixelLoaded = false;
+
+    function loadMetaPixel() {
+      if (pixelLoaded) return;
+      pixelLoaded = true;
+      /* eslint-disable */
+      !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+      n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+      n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+      t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+      document,'script','https://connect.facebook.net/en_US/fbevents.js');
+      /* eslint-enable */
+      fbq('init', META_PIXEL_ID);
+      fbq('track', 'PageView'); // Evento ao abrir o quiz.
+    }
+
+    // Dispara eventos customizados do quiz para o Meta Pixel — nunca com respostas, resultado emocional,
+    // textos das perguntas, nome, e-mail, idade, sexo ou qualquer outro dado sensível/identificável.
+    function trackQuizEvent(eventName, params) {
+      if (pixelLoaded && typeof fbq === 'function') {
+        fbq('trackCustom', eventName, params || {});
+      }
+    }
+
+    // Captura de UTMs e origem de tráfego — salvos em sessionStorage para continuarem disponíveis
+    // quando a pessoa for direcionada às páginas de venda (afastamento/espera/retorno.html).
+    (function captureTrafficSource() {
+      const params = new URLSearchParams(window.location.search);
+      const utmKeys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
+      const utmData = {};
+      utmKeys.forEach((key) => {
+        const value = params.get(key);
+        if (value) utmData[key] = value;
+      });
+      if (Object.keys(utmData).length) {
+        sessionStorage.setItem('utm_data', JSON.stringify(utmData));
+      }
+      if (document.referrer && !sessionStorage.getItem('traffic_referrer')) {
+        sessionStorage.setItem('traffic_referrer', document.referrer);
+      }
+    })();
+
+    // Consentimento: se já aceito antes, carrega o Pixel direto; se ainda não decidiu, mostra o banner.
+    const cookieBanner = document.querySelector('#cookie-banner');
+    const existingConsent = localStorage.getItem(COOKIE_CONSENT_KEY);
+    if (existingConsent === 'accepted') {
+      loadMetaPixel();
+    } else if (existingConsent !== 'declined' && cookieBanner) {
+      cookieBanner.hidden = false;
+    }
+
+    const cookieAcceptBtn = document.querySelector('#cookie-accept');
+    const cookieDeclineBtn = document.querySelector('#cookie-decline');
+    if (cookieAcceptBtn) {
+      cookieAcceptBtn.addEventListener('click', () => {
+        localStorage.setItem(COOKIE_CONSENT_KEY, 'accepted');
+        if (cookieBanner) cookieBanner.hidden = true;
+        loadMetaPixel();
+      });
+    }
+    if (cookieDeclineBtn) {
+      cookieDeclineBtn.addEventListener('click', () => {
+        localStorage.setItem(COOKIE_CONSENT_KEY, 'declined');
+        if (cookieBanner) cookieBanner.hidden = true;
+      });
+    }
+    // ===================== fim LGPD / Cookies + Meta Pixel =====================
+
     // TEXTOS: edite as perguntas e respostas abaixo conforme necessário.
     // URLs: defina os destinos finais aqui. Para teste local, apontam para os arquivos .html correspondentes.
     // Ao publicar o site, troque cada "url" por seu caminho definitivo (ex.: '/afastamento', '/espera', '/retorno').
@@ -324,6 +446,7 @@
     const resultNote = document.querySelector('#result-note');
 
     document.querySelector('#start-button').addEventListener('click', () => {
+      trackQuizEvent('QuizStart');
       welcomeScreen.hidden = true;
       questionScreen.hidden = false;
       renderQuestion();
@@ -365,6 +488,9 @@
       if (isTransitioning) return; // ignora cliques repetidos enquanto a próxima tela é montada
       isTransitioning = true;
 
+      // Envia apenas o número da pergunta respondida — nunca o texto da pergunta ou a resposta escolhida.
+      trackQuizEvent('QuizStep', { step: currentStep + 1 });
+
       if (currentStep === 0) {
         selectedPath = option.path;
         // A seleção inicial também muda a arte e o degradê do caminho escolhido.
@@ -384,6 +510,8 @@
       resultNote.hidden = true;
       resultScreen.hidden = false;
       document.querySelector('#continue-button').focus({ preventScroll: true });
+      // Evento de conclusão — sem resultado emocional, caminho escolhido ou qualquer dado identificável.
+      trackQuizEvent('QuizComplete');
     }
 
     document.querySelector('#continue-button').addEventListener('click', () => {
