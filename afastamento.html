@@ -286,6 +286,27 @@
     -webkit-tap-highlight-color: transparent;
   }
 
+  /* Aviso de cookies: barra fixa no topo, discreta, não altera o layout da página. */
+  .cookie-banner {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 60;
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px;
+    padding: 10px 16px; padding-top: calc(10px + env(safe-area-inset-top, 0px));
+    background: var(--glass-strong); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--border);
+    color: var(--muted); font-size: .82rem; text-align: center;
+  }
+  .cookie-banner[hidden] { display: none; }
+  .cookie-banner p { margin: 0; }
+  .cookie-actions { display: inline-flex; gap: 8px; }
+  .cookie-banner button {
+    font: inherit; font-family: 'DM Sans', ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: .78rem; font-weight: 600; cursor: pointer;
+    padding: 5px 12px; border-radius: 999px; border: 1px solid var(--border);
+    background: transparent; color: var(--ink);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .cookie-banner .cookie-accept { background: linear-gradient(120deg, var(--primary-strong), var(--primary)); color: var(--bg-1); border-color: transparent; }
+
   @media (min-width: 600px) {
     main { padding: 34px 32px 100px; }
     .method-grid { grid-template-columns: repeat(2, 1fr); }
@@ -305,6 +326,14 @@
 </style>
 </head>
 <body>
+<!-- Aviso de cookies: mínimo e discreto, não altera o layout da página. O Pixel só carrega após o aceite. -->
+<div class="cookie-banner" id="cookie-banner" role="dialog" aria-live="polite" aria-label="Aviso de cookies" hidden>
+  <p>Usamos cookies para medir a navegação neste site.</p>
+  <div class="cookie-actions">
+    <button type="button" id="cookie-decline">Recusar</button>
+    <button type="button" id="cookie-accept" class="cookie-accept">Aceitar</button>
+  </div>
+</div>
 <main>
 
   <div class="top-row">
@@ -523,6 +552,59 @@
 <noscript><style>.reveal{opacity:1!important;transform:none!important;}</style></noscript>
 
 <script>
+  // ===================== Meta Pixel + Consentimento de cookies =====================
+  // Mesmo Pixel ID usado nas demais páginas do funil. Só carrega depois do aceite do aviso de cookies
+  // (ou imediatamente, em visitas futuras, se o consentimento já tiver sido dado antes, inclusive no quiz).
+  const META_PIXEL_ID = '1034542082314155';
+  const PAGE_FLOW_CODE = 'flow_a'; // Identificador neutro desta página (Afastamento) — não é um dado pessoal.
+  const COOKIE_CONSENT_KEY = 'cookie_consent'; // 'accepted' | 'declined' — mesmo padrão usado no restante do funil.
+  let pixelLoaded = false;
+
+  function loadMetaPixel() {
+    if (pixelLoaded) return;
+    pixelLoaded = true;
+    /* eslint-disable */
+    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+    n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+    document,'script','https://connect.facebook.net/en_US/fbevents.js');
+    /* eslint-enable */
+    fbq('init', META_PIXEL_ID);
+    fbq('track', 'PageView');
+    // ViewContent usa somente um identificador neutro do fluxo — nunca respostas do quiz,
+    // textos das dores, nome de resultados, informações emocionais ou dados pessoais.
+    fbq('track', 'ViewContent', {
+      content_type: 'quiz_landing',
+      content_ids: [PAGE_FLOW_CODE]
+    });
+  }
+
+  const cookieBanner = document.querySelector('#cookie-banner');
+  const existingConsent = localStorage.getItem(COOKIE_CONSENT_KEY);
+  if (existingConsent === 'accepted') {
+    loadMetaPixel();
+  } else if (existingConsent !== 'declined' && cookieBanner) {
+    cookieBanner.hidden = false;
+  }
+
+  const cookieAcceptBtn = document.querySelector('#cookie-accept');
+  const cookieDeclineBtn = document.querySelector('#cookie-decline');
+  if (cookieAcceptBtn) {
+    cookieAcceptBtn.addEventListener('click', () => {
+      localStorage.setItem(COOKIE_CONSENT_KEY, 'accepted');
+      if (cookieBanner) cookieBanner.hidden = true;
+      loadMetaPixel();
+    });
+  }
+  if (cookieDeclineBtn) {
+    cookieDeclineBtn.addEventListener('click', () => {
+      localStorage.setItem(COOKIE_CONSENT_KEY, 'declined');
+      if (cookieBanner) cookieBanner.hidden = true;
+    });
+  }
+  // ===================== fim Meta Pixel + Consentimento de cookies =====================
+
   // Dados do produto e checkout — troque aqui quando quiser atualizar.
   const PRODUCT_NAME = 'Saindo da Dor do Apego Ansioso';
   const ORIGINAL_PRICE = 'R$ 179,90';
@@ -531,7 +613,7 @@
   // flow_a identifica vendas vindas da página de afastamento; flow_b, da página de espera; flow_c, da página de retorno.
   // Os códigos são neutros — não carregam informações emocionais nem respostas individuais do quiz —
   // e servem apenas para organização de vendas na Kiwify. NÃO enviar esses códigos ao Meta Pixel como evento ou parâmetro.
-  const CHECKOUT_BASE_URL = 'https://pay.kiwify.com.br/MhJ3B2S?afid=RJfriJIf';
+  const CHECKOUT_BASE_URL = 'https://pay.kiwify.com.br/NnBncjN?afid=xRCsNcNo';
   const CHECKOUT_AFASTAMENTO = `${CHECKOUT_BASE_URL}&src=flow_a`;
   const CHECKOUT_ESPERA = `${CHECKOUT_BASE_URL}&src=flow_b`;
   const CHECKOUT_RETORNO = `${CHECKOUT_BASE_URL}&src=flow_c`;
@@ -550,6 +632,20 @@
   document.querySelectorAll('#cta-hero, #cta-final, #cta-sticky').forEach((btn) => {
     if (CHECKOUT_URL) {
       btn.href = CHECKOUT_URL;
+      // O evento InitiateCheckout registra o clique em direção ao checkout.
+      // flow_a, flow_b e flow_c servem apenas para identificar o fluxo.
+      // O evento Purchase não é criado nestas páginas.
+      // Purchase deve ser disparado pela Kiwify após pagamento aprovado.
+      btn.addEventListener('click', () => {
+        if (pixelLoaded) {
+          fbq('track', 'InitiateCheckout', {
+            content_type: 'quiz_checkout',
+            content_ids: [PAGE_FLOW_CODE],
+            value: 47.90,
+            currency: 'BRL'
+          });
+        }
+      });
     } else {
       btn.addEventListener('click', (e) => {
         e.preventDefault();
