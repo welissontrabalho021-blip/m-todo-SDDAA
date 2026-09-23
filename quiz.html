@@ -41,6 +41,7 @@
     body[data-theme="relationship"] { background: linear-gradient(145deg, #edf8f4 0%, #dceeea 50%, #f2f8f5 100%); }
     body[data-theme="separated"] { background: linear-gradient(145deg, #f0f5fb 0%, #e5edf7 48%, #f7f3ed 100%); }
     body[data-theme="return"] { background: linear-gradient(145deg, #f7f2fa 0%, #ece5f5 48%, #f4f6f4 100%); }
+    body[data-theme="attachment"] { background: linear-gradient(145deg, #fbf1f0 0%, #f7e3e1 50%, #f8f4ed 100%); }
 
     body::before, body::after {
       position: fixed;
@@ -73,6 +74,8 @@
     body[data-theme="separated"]::after { background: rgba(220, 204, 184, .45); }
     body[data-theme="return"]::before { background: rgba(194, 166, 213, .43); transform: rotate(18deg) scale(1.08); }
     body[data-theme="return"]::after { background: rgba(173, 208, 196, .45); }
+    body[data-theme="attachment"]::before { background: rgba(214, 148, 143, .46); transform: rotate(-14deg) scale(1.05); }
+    body[data-theme="attachment"]::after { background: rgba(232, 194, 178, .5); }
     /* Pequenas mudanças de composição a cada pergunta mantêm a experiência viva. */
     body[data-step="1"]::before { transform: translateX(-4vw) rotate(-30deg) scale(.94); }
     body[data-step="2"]::after { transform: translateX(7vw) rotate(32deg) scale(1.08); }
@@ -419,6 +422,17 @@
           { title: 'Depois que vocês se aproximam novamente, o que acontece?', options: ['A pessoa se afasta outra vez', 'Fico esperando o próximo contato', 'Começo a ter dúvidas novamente'] },
           { title: 'O que você gostaria de entender melhor?', options: ['Por que é tão difícil dizer não', 'Por que esse ciclo continua', 'Como lidar melhor com esses retornos'] }
         ]
+      },
+      // Novo público: apego emocional sem uma relação concreta (ex.: ficante, aproximação que nunca virou
+      // relação, alguém que se afastou sem nunca ter assumido nada). Segue o mesmo fluxo de 4 perguntas.
+      attachment: {
+        result: 'Apego emocional sem relação concreta',
+        url: 'apego.html',
+        questions: [
+          { title: 'Como está a relação de vocês hoje?', options: ['Ainda nos envolvemos, mas não sei o que essa pessoa quer.', 'Ela ficou distante e vivemos nesse vai e volta.', 'Já não nos envolvemos mais, mas ainda tenho um apego emocional.'] },
+          { title: 'O que mais está afetando você hoje nessa situação?', options: ['A incerteza sobre o que essa pessoa sente ou pensa sobre mim.', 'A ansiedade, a espera e a vontade de receber alguma mensagem ou atitude.', 'Saber que preciso seguir em frente, mas não conseguir me desligar emocionalmente.'] },
+          { title: 'O que você mais gostaria de mudar?', options: ['Parar de sentir tanta ansiedade nessa relação.', 'Parar de esperar por mensagens ou atitudes.', 'Conseguir me desligar emocionalmente e ficar em paz.'] }
+        ]
       }
     };
 
@@ -427,7 +441,8 @@
       options: [
         { text: 'Estou em um relacionamento', path: 'relationship' },
         { text: 'Estou separado(a)', path: 'separated' },
-        { text: 'A relação terminou, mas ainda existem recaídas', path: 'return' }
+        { text: 'A relação terminou, mas ainda existem recaídas', path: 'return' },
+        { text: 'Não tivemos uma relação concreta, mas desenvolvi apego emocional/sentimento.', path: 'attachment' }
       ]
     };
 
